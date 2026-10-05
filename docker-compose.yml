@@ -6,9 +6,8 @@ volumes:
   launchpad_db_data:
 
 services:
-  # ==================================================
+
   # MYSQL DATABASE
-  # ==================================================
   app-db:
     image: mysql:8.0
     container_name: launchpad_mysql_db
@@ -30,9 +29,8 @@ services:
       retries: 5
       start_period: 30s
 
-  # ==================================================
+
   # 1. AUTH SERVICE (Port 5001)
-  # ==================================================
   auth-service:
     build:
       context: ./Service/authService
@@ -57,9 +55,7 @@ services:
     networks:
       - app-network
 
-  # ==================================================
-  # 2. RESTAURANT SERVICE (Port 5002)
-  # ==================================================
+  # 2. RESTAURANT SERVICE (Port 5002)  
   restaurant-service:
     build:
       context: ./Service/restaurantService
@@ -81,9 +77,7 @@ services:
     networks:
       - app-network
 
-  # ==================================================
   # 3. ORDER SERVICE (Port 5003)
-  # ==================================================
   order-service:
     build:
       context: ./Service/orderService
@@ -94,6 +88,50 @@ services:
       - "${ORDER_PORT}:5003"
     environment:
       PORT: 5003
+      DB_HOST: app-db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+    depends_on:
+      app-db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # 4. DELIVERY SERVICE (Port 5004)
+  delivery-service:
+    build:
+      context: ./Service/deliveryService
+      dockerfile: Dockerfile
+    container_name: delivery_microservice
+    restart: always
+    ports:
+      - "${DELIVERY_PORT}:5004"
+    environment:
+      PORT: 5004
+      DB_HOST: app-db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+    depends_on:
+      app-db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # 5. CUSTOMER SERVICE (Port 5005)
+  customer-service:
+    build:
+      context: ./Service/customerService
+      dockerfile: Dockerfile
+    container_name: customer_microservice
+    restart: always
+    ports:
+      - "${CUSTOMER_PORT}:5005"
+    environment:
+      PORT: 5005
       DB_HOST: app-db
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
