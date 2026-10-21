@@ -26,6 +26,21 @@ exports.findByDeliveryPersonId = async (deliveryPersonId) => {
   return rows;
 };
 
+exports.findAvailableUnassigned = async () => {
+  const [rows] = await db.query(
+    "SELECT * FROM deliveries WHERE delivery_person_id IS NULL AND status = 'PENDING' ORDER BY created_at DESC"
+  );
+  return rows;
+};
+
+exports.claimDelivery = async (deliveryId, deliveryPersonId) => {
+  const [result] = await db.query(
+    "UPDATE deliveries SET delivery_person_id = ?, status = 'ASSIGNED', assigned_time = NOW() WHERE id = ? AND delivery_person_id IS NULL",
+    [deliveryPersonId, deliveryId]
+  );
+  return result.affectedRows > 0;
+};
+
 exports.assignRider = async (deliveryId, deliveryPersonId) => {
   const [result] = await db.query(
     `UPDATE deliveries 

@@ -7,4 +7,4 @@ exports.addMenuItem = async (data) => {
 
 exports.getItemsByRestaurant = async (restaurantId) => menuRepo.findByRestaurantId(restaurantId);
 exports.getMenuItem = async (id) => menuRepo.findById(id);
-exports.setAvailability = async (id, availability) => menuRepo.updateAvailability(id, availability);
+exports.setAvailability = async (id, availability) => menuRepo.update(id, { availability });

@@ -43,9 +43,10 @@ exports.getRestaurantOrders = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const updated = await orderService.updateOrderStatus(req.params.id, status);
+    const token = req.headers['authorization'];
+    const updated = await orderService.updateOrderStatus(req.params.id, status, token);
     if (!updated) return error(res, 404, 'Order not found');
-    return success(res, 200, `Order status updated to ${status}`);
+    return success(res, 200, `Order status updated to ${status}`, updated);
   } catch (err) {
     return error(res, 400, err.message);
   }

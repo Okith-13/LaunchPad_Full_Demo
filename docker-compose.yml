@@ -41,7 +41,10 @@ services:
       - "${AUTH_PORT}:5001"
     environment:
       PORT: 5001
+      SERVICE_NAME: auth-service
+      CLIENT_ORIGIN: http://localhost:3000      
       DB_HOST: app-db
+      DB_PORT: 3306
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
@@ -66,7 +69,10 @@ services:
       - "${RESTAURANT_PORT}:5002"
     environment:
       PORT: 5002
+      SERVICE_NAME: restaurant-service
+      CLIENT_ORIGIN: http://localhost:3000
       DB_HOST: app-db
+      DB_PORT: 3306
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
@@ -88,7 +94,10 @@ services:
       - "${ORDER_PORT}:5003"
     environment:
       PORT: 5003
+      SERVICE_NAME: order-service
+      CLIENT_ORIGIN: http://localhost:3000
       DB_HOST: app-db
+      DB_PORT: 3306
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
@@ -110,11 +119,15 @@ services:
       - "${DELIVERY_PORT}:5004"
     environment:
       PORT: 5004
+      SERVICE_NAME: delivery-service
+      CLIENT_ORIGIN: http://localhost:3000
       DB_HOST: app-db
+      DB_PORT: 3306
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      ORDER_SERVICE_URL: http://order-service:5003
     depends_on:
       app-db:
         condition: service_healthy
@@ -132,7 +145,10 @@ services:
       - "${CUSTOMER_PORT}:5005"
     environment:
       PORT: 5005
+      SERVICE_NAME: customer-service
+      CLIENT_ORIGIN: http://localhost:3000
       DB_HOST: app-db
+      DB_PORT: 3306
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
@@ -140,5 +156,29 @@ services:
     depends_on:
       app-db:
         condition: service_healthy
+    networks:
+      - app-network
+
+  # 6. REACT FRONTEND (Port 3000)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_AUTH_API_URL: http://localhost:5001/api/auth
+        VITE_RESTAURANT_API_URL: http://localhost:5002/api
+        VITE_ORDER_API_URL: http://localhost:5003/api/orders
+        VITE_DELIVERY_API_URL: http://localhost:5004/api/deliveries
+        VITE_CUSTOMER_API_URL: http://localhost:5005/api/customers
+    container_name: food-delivery-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - auth-service
+      - restaurant-service
+      - order-service
+      - delivery-service
+      - customer-service
     networks:
       - app-network

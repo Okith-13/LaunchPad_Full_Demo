@@ -7,6 +7,11 @@ router.post('/', authenticateToken, controller.createOrder);
 router.get('/my-orders', authenticateToken, controller.getMyOrders);
 router.get('/:id', authenticateToken, controller.getOrderById);
 router.get('/restaurant/:restaurantId', authenticateToken, controller.getRestaurantOrders);
-router.patch('/:id/status', authenticateToken, controller.updateStatus);
+router.patch(
+  '/:id/status', 
+  authenticateToken, 
+  authorizeRoles('ADMIN', 'RESTAURANT_ADMIN', 'DELIVERY_PERSON'), 
+  controller.updateStatus
+);
 
 module.exports = router;

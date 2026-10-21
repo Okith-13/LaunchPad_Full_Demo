@@ -1,22 +1,21 @@
 const restaurantService = require('../services/restaurant.service');
 const { success, error } = require('../utils/response.util');
 
-exports.createRestaurant = async (req, res) => {
+exports.getMyRestaurant = async (req, res) => {
   try {
-    const owner_id = req.user ? req.user.userId : req.body.owner_id;
-    const newRestaurant = await restaurantService.createRestaurant({ ...req.body, owner_id });
-    return success(res, 201, 'Restaurant registered successfully', newRestaurant);
+    const restaurant = await restaurantService.getRestaurantByOwnerId(req.user.userId);
+    return success(res, 200, 'User restaurant retrieved', restaurant);
   } catch (err) {
-    return error(res, 500, 'Failed to create restaurant', err.message);
+    return error(res, 500, 'Failed to fetch restaurant profile', err.message);
   }
 };
 
-exports.getRestaurants = async (req, res) => {
+exports.getAllRestaurants = async (req, res) => {
   try {
-    const restaurants = await restaurantService.getAllRestaurants();
+    const restaurants = await restaurantService.getAllRestaurants(req.query);
     return success(res, 200, 'Restaurants fetched successfully', restaurants);
   } catch (err) {
-    return error(res, 500, 'Failed to fetch restaurants', err.message);
+    return error(res, 500, 'Failed to retrieve restaurants', err.message);
   }
 };
 
@@ -24,29 +23,39 @@ exports.getRestaurantById = async (req, res) => {
   try {
     const restaurant = await restaurantService.getRestaurantById(req.params.id);
     if (!restaurant) return error(res, 404, 'Restaurant not found');
-    return success(res, 200, 'Restaurant fetched successfully', restaurant);
+    return success(res, 200, 'Restaurant retrieved', restaurant);
   } catch (err) {
-    return error(res, 500, 'Failed to fetch restaurant', err.message);
+    return error(res, 500, 'Failed to retrieve restaurant', err.message);
   }
 };
 
-exports.updateStatus = async (req, res) => {
+exports.createRestaurant = async (req, res) => {
   try {
-    const { status } = req.body;
-    const updated = await restaurantService.updateStatus(req.params.id, status);
-    if (!updated) return error(res, 404, 'Restaurant not found');
-    return success(res, 200, `Restaurant status updated to ${status}`);
+    const restaurantData = {
+      ...req.body,
+      owner_id: req.user.userId
+    };
+    const newRestaurant = await restaurantService.createRestaurant(restaurantData);
+    return success(res, 201, 'Restaurant created successfully', newRestaurant);
   } catch (err) {
-    return error(res, 500, 'Failed to update status', err.message);
+    return error(res, 400, err.message);
+  }
+};
+
+exports.updateRestaurant = async (req, res) => {
+  try {
+    const updated = await restaurantService.updateRestaurant(req.params.id, req.body, req.user.userId);
+    return success(res, 200, 'Restaurant updated successfully', updated);
+  } catch (err) {
+    return error(res, 400, err.message);
   }
 };
 
 exports.deleteRestaurant = async (req, res) => {
   try {
-    const deleted = await restaurantService.deleteRestaurant(req.params.id);
-    if (!deleted) return error(res, 404, 'Restaurant not found');
+    await restaurantService.deleteRestaurant(req.params.id);
     return success(res, 200, 'Restaurant deleted successfully');
   } catch (err) {
-    return error(res, 500, 'Failed to delete restaurant', err.message);
+    return error(res, 500, err.message);
   }
 };

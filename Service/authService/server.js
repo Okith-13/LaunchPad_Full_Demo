@@ -6,8 +6,19 @@ const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
-app.use(cors());
+const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
+app.use(cors({
+  origin: clientOrigin,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+}));
+
 app.use(express.json());
+
+// Specification required health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP', service: 'auth-service' });
+});
 
 app.use('/api/auth', authRoutes);
 
